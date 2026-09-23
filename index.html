@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Binary</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b0e11; color: #c9d1d9; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 70px; }
+        
+        /* Top Navigation Bar */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #12161c; border-bottom: 1px solid #1e2329; position: relative; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .menu-btn { background: none; border: none; color: #c9d1d9; font-size: 20px; cursor: pointer; padding: 2px; }
+        .logo { font-size: 18px; font-weight: bold; color: #3861fb; }
+        
+        .nav-controls { display: flex; align-items: center; gap: 10px; }
+        
+        .account-badge { background: #181d24; border: 1px solid #2b313a; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .account-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-demo { background-color: #3861fb; }
+        .dot-real { background-color: #0ecb81; }
+        
+        .btn-deposit { background-color: #0ecb81; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; }
+        .btn-deposit:hover { background-color: #12de8e; }
+        
+        /* Dropdowns */
+        .dropdown-menu { display: none; position: absolute; top: 55px; background-color: #181d24; border: 1px solid #2b313a; border-radius: 8px; width: 220px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        #sideMenuDropdown { left: 16px; }
+        #accountDropdownMenu { right: 16px; }
+        
+        .dropdown-item { padding: 12px 16px; font-size: 14px; color: #c9d1d9; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #21262d; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background-color: #2b313a; color: #58a6ff; }
+        
+        /* Layout Container */
+        .main-content { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; max-width: 500px; margin: 0 auto; width: 100%; }
+        
+        /* Card Structure */
+        .card { background: #12161c; border: 1px solid #1e2329; border-radius: 12px; padding: 18px; }
+        
+        /* Live Chart Card */
+        .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .asset-title { font-size: 14px; color: #848e9c; }
+        .live-tag { font-size: 13px; color: #0ecb81; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+        .live-tag::before { content: "•"; font-size: 18px; }
+        .price-display { font-size: 28px; font-weight: bold; color: #ffffff; margin-bottom: 15px; }
+        
+        .chart-container { height: 120px; width: 100%; position: relative; margin-bottom: 20px; }
+        .chart-svg { width: 100%; height: 100%; overflow: visible; }
+        
+        /* 0-9 Digit Percentage Grid */
+        .digit-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+        .digit-box { background: #181d24; border: 1px solid #2b313a; border-radius: 6px; padding: 8px 0; text-align: center; }
+        .digit-box.active { border-color: #3861fb; background: #1b264f; }
+        .digit-num { font-size: 13px; font-weight: bold; color: #ffffff; }
+        .digit-pct { font-size: 10px; color: #0ecb81; margin-top: 2px; }
+        
+        /* Trade Config Form */
+        .stake-header { text-align: center; font-size: 11px; color: #848e9c; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stake-input-box { width: 100%; background: #080a0c; border: 1px solid #2b313a; color: #ffffff; font-size: 20px; font-weight: bold; text-align: center; padding: 10px; border-radius: 6px; outline: none; margin-bottom: 10px; }
+        
+        .preset-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; }
+        .btn-preset { background: #181d24; border: 1px solid #2b313a; color: #ffffff; padding: 8px 0; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
+        .btn-preset:hover { background: #2b313a; }
+        
+        /* Advanced Settings Row */
+        .settings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+        .setting-card { background: #181d24; border: 1px solid #2b313a; border-radius: 6px; padding: 8px; text-align: center; }
+        .setting-label { font-size: 10px; color: #848e9c; font-weight: bold; margin-bottom: 4px; display: block; text-transform: uppercase; }
+        .setting-input { width: 100%; background: transparent; border: none; color: #848e9c; font-size: 12px; text-align: center; outline: none; }
+        
+        /* Action Trade Buttons */
+        .trade-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-action { padding: 14px; border-radius: 8px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; color: white; text-align: center; }
+        .btn-over { background-color: #168039; }
+        .btn-over:hover { background-color: #1ca349; }
+        .btn-under { background-color: #d93025; }
+        .btn-under:hover { background-color: #ea4335; }
+        
+        /* Bottom Fixed Icon Navigation Bar */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #12161c; border-top: 1px solid #1e2329; display: flex; justify-style: space-around; padding: 8px 0 10px 0; z-index: 150; }
+        .nav-btn { background: none; border: none; color: #848e9c; display: flex; flex-direction: column; align-items: center; font-size: 11px; cursor: pointer; gap: 3px; width: 33.33%; }
+        .nav-btn.active { color: #3861fb; }
+        .nav-btn-icon { font-size: 18px; }
+
+        /* Scanner & Positions Sections */
+        .scanner-card { background: #12161c; border: 1px solid #1e2329; border-radius: 12px; padding: 18px; }
+        .signal-item { background: #181d24; border: 1px solid #2b313a; padding: 12px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .position-row { background: #181d24; border: 1px solid #2b313a; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-close-pos { background: #2b313a; color: #ea4335; border: 1px solid #d93025; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 200; }
+        .modal-content { background: #12161c; border: 1px solid #2b313a; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; position: relative; }
+        .close-modal { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #848e9c; font-size: 20px; cursor: pointer; }
+        .modal-input { width: 100%; background: #080a0c; border: 1px solid #2b313a; color: #fff; padding: 10px; border-radius: 6px; font-size: 14px; margin: 8px 0; outline: none; }
+        
+        .auth-tabs { display: flex; margin-bottom: 15px; border-bottom: 1px solid #2b313a; }
+        .auth-tab-btn { flex: 1; padding: 10px; background: none; border: none; color: #848e9c; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .auth-tab-btn.active { color: #3861fb; border-bottom: 2px solid #3861fb; }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <div class="navbar">
+        <div class="nav-left">
+            <button class="menu-btn" onclick="toggleSideMenu()">☰</button>
+            <div class="logo">Premium Binary</div>
+        </div>
+        
+        <div class="nav-controls">
+            <div class="account-badge" onclick="toggleAccountDropdown()">
+                <span id="accountDotIndicator" class="account-dot dot-demo"></span>
+                <span id="accountBadgeDisplay">Demo: $10,000.00</span>
+                <span style="font-size: 10px; color: #848e9c;">▼</span>
+            </div>
+        </div>
+
+        <!-- Account Selector Dropdown -->
+        <div id="accountDropdownMenu" class="dropdown-menu">
+            <div class="dropdown-item" onclick="switchAccountType('demo')">
+                <span class="account-dot dot-demo"></span> Switch to Demo Account
+            </div>
+            <div class="dropdown-item" onclick="switchAccountType('real')">
+                <span class="account-dot dot-real"></span> Switch to Real Account
+            </div>
+        </div>
+
+        <!-- Side Menu Dropdown -->
+        <div id="sideMenuDropdown" class="dropdown-menu">
+            <div class="dropdown-item" onclick="openModalFromMenu('authModal')">👤 Trader Account / Sign In</div>
+            <div class="dropdown-item" onclick="handleDepositClickFromMenu()">📥 Deposit Funds (M-Pesa)</div>
+            <div class="dropdown-item" onclick="handleWithdrawClickFromMenu()">📤 Withdraw Funds</div>
+        </div>
+    </div>
+
+    <!-- Main Mobile Layout -->
+    <div class="main-content">
+        
+        <!-- Trade View Panel -->
+        <div id="tradeViewSection">
+            
+            <!-- Live Chart Card -->
+            <div class="card">
+                <div class="chart-header">
+                    <div class="asset-title">Gold (NSE)</div>
+                    <div class="live-tag">Live Dynamic Feed</div>
+                </div>
+                <div id="livePriceDisplay" class="price-display">$2517.61</div>
+
+                <div class="chart-container">
+                    <svg class="chart-svg" viewBox="0 0 400 100" preserveAspectRatio="none">
+                        <path id="chartPath" d="M 0 35 L 120 45 L 240 75 L 310 25 L 400 65" fill="none" stroke="#f0b90b" stroke-width="2.5"/>
+                    </svg>
+                </div>
+
+                <!-- 0-9 Digit Percentage Grid -->
+                <div class="digit-grid">
+                    <div class="digit-box"><div class="digit-num">0</div><div class="digit-pct">12%</div></div>
+                    <div class="digit-box"><div class="digit-num">1</div><div class="digit-pct">5%</div></div>
+                    <div class="digit-box"><div class="digit-num">2</div><div class="digit-pct">10%</div></div>
+                    <div class="digit-box active"><div class="digit-num">3</div><div class="digit-pct">17%</div></div>
+                    <div class="digit-box"><div class="digit-num">4</div><div class="digit-pct">3%</div></div>
+                    <div class="digit-box"><div class="digit-num">5</div><div class="digit-pct">10%</div></div>
+                    <div class="digit-box"><div class="digit-num">6</div><div class="digit-pct">12%</div></div>
+                    <div class="digit-box"><div class="digit-num">7</div><div class="digit-pct">21%</div></div>
+                    <div class="digit-box"><div class="digit-num">8</div><div class="digit-pct">5%</div></div>
+                    <div class="digit-box"><div class="digit-num">9</div><div class="digit-pct">3%</div></div>
+                </div>
+            </div>
+
+            <!-- Stake & Execution Controls Card -->
+            <div class="card" style="margin-top: 15px;">
+                <div class="stake-header">STAKE ($ USD)</div>
+                <input type="number" id="stakeInput" class="stake-input-box" value="25" min="1" step="1">
+
+                <div class="preset-row">
+                    <button class="btn-preset" onclick="setStake(1)">$1</button>
+                    <button class="btn-preset" onclick="setStake(5)">$5</button>
+                    <button class="btn-preset" onclick="setStake(10)">$10</button>
+                    <button class="btn-preset" onclick="setStake(25)">$25</button>
+                    <button class="btn-preset" onclick="setStake(50)">$50</button>
+                    <button class="btn-preset" onclick="setStake(100)">$100</button>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="setting-card">
+                        <span class="setting-label">Target Profit</span>
+                        <input type="text" class="setting-input" placeholder="e.g. 50">
+                    </div>
+                    <div class="setting-card">
+                        <span class="setting-label">Stop Loss</span>
+                        <input type="text" class="setting-input" placeholder="e.g. 20">
+                    </div>
+                    <div class="setting-card">
+                        <span class="setting-label">Multiplier</span>
+                        <input type="text" class="setting-input" placeholder="e.g. 2">
+                    </div>
+                </div>
+
+                <div class="trade-buttons">
+                    <button class="btn-action btn-over" onclick="executeTrade('OVER / EVEN')">OVER / EVEN</button>
+                    <button class="btn-action btn-under" onclick="executeTrade('UNDER / ODD')">UNDER / ODD</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- AI Scanner View -->
+        <div id="scannerViewSection" style="display: none;">
+            <div class="scanner-card">
+                <div class="chart-header">
+                    <div class="asset-title" style="font-size: 16px; color: #fff;">Market Neural Pattern Scanner</div>
+                    <button class="btn-deposit" style="padding: 6px 12px; font-size: 12px;" onclick="runDeepScan()">Run Deep Scan</button>
+                </div>
+                <div id="scannerStatusText" style="font-size: 13px; color: #848e9c; margin-top: 10px;">
+                    ● Tap "Run Deep Scan" to analyze tick patterns in real-time.
+                </div>
+                <div id="scannerSignalsList">
+                    <div style="text-align: center; color: #848e9c; font-size: 13px; padding: 20px 0;">No active scan results yet.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Open Positions View -->
+        <div id="positionsViewSection" style="display: none;">
+            <div class="card">
+                <div class="asset-title" style="font-size: 16px; color: #fff; margin-bottom: 12px;">Active Market Positions</div>
+                <div id="positionsListContainer">
+                    <div style="color: #848e9c; font-size: 13px;">No active open positions right now.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Icon Navigation Bar -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" id="navTradeBtn" onclick="switchNavTab('trade')">
+            <span class="nav-btn-icon">📈</span>
+            <span>Trade</span>
+        </button>
+        <button class="nav-btn" id="navScannerBtn" onclick="switchNavTab('scanner')">
+            <span class="nav-btn-icon">🤖</span>
+            <span>AI Scanner</span>
+        </button>
+        <button class="nav-btn" id="navPositionsBtn" onclick="switchNavTab('positions')">
+            <span class="nav-btn-icon">📋</span>
+            <span>Positions (<span id="navPosCount">0</span>)</span>
+        </button>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div id="depositModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('depositModal')">&times;</button>
+            <h3 style="color:#fff;">Deposit via M-Pesa</h3>
+            <p style="font-size: 12px; color: #848e9c; margin-top: 5px;">Enter your 10-digit Kenyan phone number and amount. You will receive an STK Push prompt on your phone.</p>
+            <form onsubmit="handleDepositAction(event)">
+                <input type="tel" id="depositPhone" class="modal-input" placeholder="0712345678 or 0112345678" pattern="^(07|01)[0-9]{8}$" maxlength="10" required>
+                <input type="number" id="depositAmount" class="modal-input" placeholder="Amount in KES (e.g. 1000)" required>
+                <button type="submit" class="btn-action btn-over" style="width: 100%; padding: 10px; font-size: 14px; margin-top: 8px;">Send STK Push</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('withdrawModal')">&times;</button>
+            <h3 style="color:#fff;">Withdraw Funds</h3>
+            <p style="font-size: 12px; color: #848e9c; margin-top: 5px;">Withdraw earnings directly to your M-Pesa mobile wallet.</p>
+            <form onsubmit="handleWithdrawAction(event)">
+                <input type="tel" id="withdrawPhone" class="modal-input" placeholder="0712345678 or 0112345678" pattern="^(07|01)[0-9]{8}$" maxlength="10" required>
+                <input type="number" id="withdrawAmount" class="modal-input" placeholder="Amount in USD ($)" step="0.01" required>
+                <button type="submit" class="btn-action btn-over" style="width: 100%; padding: 10px; font-size: 14px; margin-top: 8px;">Request Withdrawal</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Separate Sign In / Register Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
+            
+            <div class="auth-tabs">
+                <button type="button" id="tabLoginBtn" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
+                <button type="button" id="tabRegisterBtn" class="auth-tab-btn" onclick="switchAuthTab('register')">Register New Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLoginAction(event)">
+                <label style="text-align: left; font-size: 12px; display:block; color: #848e9c;">Registered Email</label>
+                <input type="email" id="loginEmail" autocomplete="email" class="modal-input" placeholder="trader@gmail.com" required>
+                <label style="text-align: left; font-size: 12px; display:block; color: #848e9c; margin-top: 6px;">Password</label>
+                <input type="password" id="loginPassword" autocomplete="current-password" class="modal-input" placeholder="••••••••" required>
+                <button type="submit" class="btn-action btn-over" style="width: 100%; padding: 10px; font-size: 14px; margin-top: 10px; background-color: #3861fb;">Sign In</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" style="display: none;" onsubmit="handleRegisterAction(event)">
+                <label style="text-align: left; font-size: 12px; display:block; color: #848e9c;">Email Address</label>
+                <input type="email" id="regEmail" autocomplete="email" class="modal-input" placeholder="trader@gmail.com" required>
+                <label style="text-align: left; font-size: 12px; display:block; color: #848e9c; margin-top: 6px;">Create Password</label>
+                <input type="password" id="regPassword" autocomplete="new-password" class="modal-input" placeholder="••••••••" required>
+                <label style="text-align: left; font-size: 12px; display:block; color: #848e9c; margin-top: 6px;">Confirm Password</label>
+                <input type="password" id="regConfirmPassword" autocomplete="new-password" class="modal-input" placeholder="••••••••" required>
+                <button type="submit" class="btn-action btn-over" style="width: 100%; padding: 10px; font-size: 14px; margin-top: 10px;">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentAccount = 'demo';
+        let demoBalance = 10000.00;
+        let realBalance = 0.00;
+        let currentUserId = null;
+        let openPositionsList = [];
+        let positionIdCounter = 1;
+
+        function toggleSideMenu() {
+            let menu = document.getElementById('sideMenuDropdown');
+            let accMenu = document.getElementById('accountDropdownMenu');
+            accMenu.style.display = 'none';
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function toggleAccountDropdown() {
+            let menu = document.getElementById('accountDropdownMenu');
+            let sideMenu = document.getElementById('sideMenuDropdown');
+            sideMenu.style.display = 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function openModalFromMenu(modalId) {
+            document.getElementById('sideMenuDropdown').style.display = 'none';
+            openModal(modalId);
+        }
+
+        function switchAuthTab(mode) {
+            let loginForm = document.getElementById('loginForm');
+            let registerForm = document.getElementById('registerForm');
+            let tabLoginBtn = document.getElementById('tabLoginBtn');
+            let tabRegisterBtn = document.getElementById('tabRegisterBtn');
+
+            if (mode === 'login') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                tabLoginBtn.classList.add('active');
+                tabRegisterBtn.classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                tabLoginBtn.classList.remove('active');
+                tabRegisterBtn.classList.add('active');
+            }
+        }
+
+        function handleDepositClick() {
+            if (!currentUserId) {
+                alert("Please log in or register first to make a deposit.");
+                openModal('authModal');
+                return;
+            }
+            openModal('depositModal');
+        }
+
+        function handleDepositClickFromMenu() {
+            document.getElementById('sideMenuDropdown').style.display = 'none';
+            handleDepositClick();
+        }
+
+        function handleWithdrawClickFromMenu() {
+            document.getElementById('sideMenuDropdown').style.display = 'none';
+            if (!currentUserId) {
+                alert("Please log in first to withdraw funds.");
+                openModal('authModal');
+                return;
+            }
+            if (realBalance <= 0) {
+                alert("You have no funds available in your Real Account to withdraw.");
+                return;
+            }
+            openModal('withdrawModal');
+        }
+
+        function validateKenyanPhone(phone) {
+            const regex = /^(07|01)[0-9]{8}$/;
+            return regex.test(phone);
+        }
+
+        setInterval(() => {
+            let base = 2517.61;
+            let moderateShift = (Math.random() * 4 - 2).toFixed(2);
+            let newPrice = (base + parseFloat(moderateShift)).toFixed(2);
+            document.getElementById('livePriceDisplay').innerText = "$" + newPrice;
+
+            let y1 = Math.floor(Math.random() * 50) + 20;
+            let y2 = Math.floor(Math.random() * 50) + 20;
+            let y3 = Math.floor(Math.random() * 50) + 20;
+            let y4 = Math.floor(Math.random() * 50) + 20;
+            let y5 = Math.floor(Math.random() * 50) + 20;
+            let pathString = `M 0 ${y1} L 120 ${y2} L 240 ${y3} L 310 ${y4} L 400 ${y5}`;
+            let pathElem = document.getElementById('chartPath');
+            if(pathElem) pathElem.setAttribute('d', pathString);
+
+            const boxes = document.querySelectorAll('.digit-box');
+            boxes.forEach(b => b.classList.remove('active'));
+            let randomIndex = Math.floor(Math.random() * boxes.length);
+            if(boxes[randomIndex]) boxes[randomIndex].classList.add('active');
+        }, 1200);
+
+        function runDeepScan() {
+            let statusText = document.getElementById('scannerStatusText');
+            let listContainer = document.getElementById('scannerSignalsList');
+            
+            statusText.style.color = '#3861fb';
+            statusText.innerText = "● Scanning Gold (NSE) tick velocity & historical distribution...";
+            listContainer.innerHTML = `<div style="text-align: center; color: #3861fb; font-size: 13px; padding: 15px 0;">Analysing market digits... Please wait.</div>`;
+
+            setTimeout(() => {
+                statusText.innerText = "● Evaluating neural confidence models...";
+            }, 1000);
+
+            setTimeout(() => {
+                statusText.style.color = '#0ecb81';
+                statusText.innerText = "● Deep Scan Complete! High-probability entry found.";
+
+                let recommendations = ['OVER / EVEN', 'UNDER / ODD'];
+                let chosenRec = recommendations[Math.floor(Math.random() * recommendations.length)];
+                let confidence = (Math.random() * 6 + 92).toFixed(1);
+                let targetDigit = Math.floor(Math.random() * 10);
+
+                listContainer.innerHTML = `
+                    <div class="signal-item">
+                        <div>
+                            <strong style="color: #ffffff; font-size: 14px;">Gold (NSE) - Deep Scan Result</strong><br>
+                            <span style="font-size: 12px; color: #848e9c;">Target Digit: <b>${targetDigit}</b> | AI Accuracy: <span style="color:#0ecb81">${confidence}%</span></span>
+                        </div>
+                        <button class="btn-action ${chosenRec === 'OVER / EVEN' ? 'btn-over' : 'btn-under'}" style="padding: 8px 14px; font-size: 12px;" onclick="executeTrade('${chosenRec}')">${chosenRec}</button>
+                    </div>
+                `;
+            }, 2200);
+        }
+
+        function switchAccountType(type) {
+            document.getElementById('accountDropdownMenu').style.display = 'none';
+
+            // Check if user is logged in before allowing account switch
+            if (!currentUserId) {
+                alert("You must log in to switch between Demo and Real accounts.");
+                openModal('authModal');
+                return;
+            }
+
+            currentAccount = type;
+            let dotIndicator = document.getElementById('accountDotIndicator');
+            
+            if(type === 'demo') {
+                document.getElementById('accountBadgeDisplay').innerText = "Demo: $" + Number(demoBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+                dotIndicator.className = "account-dot dot-demo";
+            } else {
+                document.getElementById('accountBadgeDisplay').innerText = "Real: $" + Number(realBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+                dotIndicator.className = "account-dot dot-real";
+            }
+        }
+
+        function setStake(val) {
+            document.getElementById('stakeInput').value = val;
+        }
+
+        function switchNavTab(tab) {
+            document.getElementById('navTradeBtn').classList.toggle('active', tab === 'trade');
+            document.getElementById('navScannerBtn').classList.toggle('active', tab === 'scanner');
+            document.getElementById('navPositionsBtn').classList.toggle('active', tab === 'positions');
+
+            document.getElementById('tradeViewSection').style.display = tab === 'trade' ? 'block' : 'none';
+            document.getElementById('scannerViewSection').style.display = tab === 'scanner' ? 'block' : 'none';
+            document.getElementById('positionsViewSection').style.display = tab === 'positions' ? 'block' : 'none';
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        async function executeTrade(type) {
+            let stake = parseFloat(document.getElementById('stakeInput').value);
+            let activeBal = currentAccount === 'demo' ? demoBalance : realBalance;
+
+            if (isNaN(stake) || stake <= 0) { alert("Enter a valid stake."); return; }
+            if (stake > activeBal) { alert("Insufficient funds in your " + currentAccount.toUpperCase() + " account."); return; }
+
+            if (!currentUserId) {
+                alert("Please log in first to trade with database balance tracking.");
+                openModal('authModal');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/trade/place', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId, accountType: currentAccount, stake, tradeType: type })
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert("Error placing trade: " + data.message);
+                    return;
+                }
+
+                demoBalance = parseFloat(data.demoBalance);
+                realBalance = parseFloat(data.realBalance);
+                
+                // Refresh balance display
+                document.getElementById('accountBadgeDisplay').innerText = (currentAccount === 'demo' ? "Demo: $" : "Real: $") + Number(currentAccount === 'demo' ? demoBalance : realBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+
+                let posId = data.tradeId || positionIdCounter++;
+                let position = { id: posId, dbId: data.tradeId, stake, type, timeRemaining: 3 };
+                openPositionsList.push(position);
+                
+                updatePositionsDisplay();
+
+                let tradeInterval = setInterval(() => {
+                    position.timeRemaining--;
+                    updatePositionsDisplay();
+
+                    if (position.timeRemaining <= 0) {
+                        clearInterval(tradeInterval);
+                        closePosition(posId, true);
+                    }
+                }, 1000);
+
+                position.intervalRef = tradeInterval;
+            } catch (err) {
+                console.error(err);
+                alert("Network error placing trade.");
+            }
+        }
+
+        async function closePosition(posId, completedByTimer = false) {
+            let index = openPositionsList.findIndex(p => p.id === posId);
+            if (index === -1) return;
+
+            let pos = openPositionsList[index];
+            clearInterval(pos.intervalRef);
+            openPositionsList.splice(index, 1);
+            updatePositionsDisplay();
+
+            let result = 'LOST';
+            let payout = 0;
+
+            if (completedByTimer) {
+                let won = Math.random() > 0.45;
+                if (won) {
+                    result = 'WON';
+                    payout = pos.stake * 1.85;
+                }
+            } else {
+                result = 'CLOSED_EARLY';
+                payout = pos.stake;
+            }
+
+            try {
+                const response = await fetch('/api/trade/settle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tradeId: pos.dbId, userId: currentUserId, accountType: currentAccount, result, payout })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    demoBalance = parseFloat(data.demoBalance);
+                    realBalance = parseFloat(data.realBalance);
+                    document.getElementById('accountBadgeDisplay').innerText = (currentAccount === 'demo' ? "Demo: $" : "Real: $") + Number(currentAccount === 'demo' ? demoBalance : realBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+
+                    if (result === 'WON') alert("Trade WON! +$" + (payout - pos.stake).toFixed(2));
+                    else if (result === 'LOST') alert("Trade LOST. -$" + pos.stake);
+                    else alert("Position closed early. Stake refunded.");
+                }
+            } catch (err) {
+                console.error("Settlement sync failed:", err);
+            }
+        }
+
+        function updatePositionsDisplay() {
+            let container = document.getElementById('positionsListContainer');
+            document.getElementById('navPosCount').innerText = openPositionsList.length;
+
+            if (openPositionsList.length === 0) {
+                container.innerHTML = `<div style="color: #848e9c; font-size: 13px;">No active open positions right now.</div>`;
+                return;
+            }
+
+            let html = '';
+            openPositionsList.forEach(p => {
+                html += `
+                    <div class="position-row">
+                        <div>
+                            <strong style="color: #ffffff; font-size: 13px;">Gold (NSE) - ${p.type}</strong><br>
+                            <span style="font-size: 11px; color: #848e9c;">Stake: <b>$${p.stake}</b> | Auto-closes in: <span style="color:#f0b90b">${p.timeRemaining}s</span></span>
+                        </div>
+                        <button class="btn-close-pos" onclick="closePosition(${p.id})">✕ Close</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function handleDepositAction(e) {
+            e.preventDefault();
+            if (!currentUserId) {
+                alert("You must be logged in to make a deposit.");
+                closeModal('depositModal');
+                openModal('authModal');
+                return;
+            }
+
+            let phone = document.getElementById('depositPhone').value.trim();
+            let amountKES = document.getElementById('depositAmount').value;
+
+            if (!validateKenyanPhone(phone)) {
+                alert("Please enter a valid 10-digit Kenyan phone number (e.g., 0712345678 or 0112345678).");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/deposit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId, amount: amountKES, phone })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (data.realBalance !== null) {
+                        realBalance = parseFloat(data.realBalance);
+                        currentAccount = 'real';
+                        document.getElementById('accountBadgeDisplay').innerText = "Real: $" + Number(realBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+                        document.getElementById('accountDotIndicator').className = "account-dot dot-real";
+                    }
+                    alert(data.message);
+                    closeModal('depositModal');
+                } else {
+                    alert("Deposit error: " + data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server connection failed during deposit.");
+            }
+        }
+
+        async function handleWithdrawAction(e) {
+            e.preventDefault();
+            if (!currentUserId) {
+                alert("You must be logged in to withdraw funds.");
+                closeModal('withdrawModal');
+                openModal('authModal');
+                return;
+            }
+
+            let phone = document.getElementById('withdrawPhone').value.trim();
+            let amountUSD = parseFloat(document.getElementById('withdrawAmount').value);
+
+            if (!validateKenyanPhone(phone)) {
+                alert("Please enter a valid 10-digit Kenyan phone number (e.g., 0712345678 or 0112345678).");
+                return;
+            }
+
+            if (isNaN(amountUSD) || amountUSD <= 0) {
+                alert("Please enter a valid withdrawal amount.");
+                return;
+            }
+
+            if (amountUSD > realBalance) {
+                alert(`Insufficient funds. Your Real Account balance is $${realBalance.toFixed(2)}.`);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId, amount: amountUSD, phone })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    realBalance = parseFloat(data.realBalance);
+                    document.getElementById('accountBadgeDisplay').innerText = "Real: $" + Number(realBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+                    alert(data.message);
+                    closeModal('withdrawModal');
+                } else {
+                    alert("Withdrawal error: " + data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server connection failed during withdrawal.");
+            }
+        }
+
+        async function handleLoginAction(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUserId = data.userId;
+                    demoBalance = parseFloat(data.demoBalance);
+                    realBalance = parseFloat(data.realBalance);
+                    document.getElementById('accountBadgeDisplay').innerText = (currentAccount === 'demo' ? "Demo: $" : "Real: $") + Number(currentAccount === 'demo' ? demoBalance : realBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+                    alert(data.message);
+                    closeModal('authModal');
+                } else {
+                    alert("Login failed: " + data.message);
+                }
+            } catch (err) {
+                console.error("Login error:", err);
+                alert("Server error during login connection.");
+            }
+        }
+
+        async function handleRegisterAction(e) {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match. Please re-enter.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUserId = data.userId;
+                    demoBalance = parseFloat(data.demoBalance);
+                    realBalance = parseFloat(data.realBalance);
+                    document.getElementById('accountBadgeDisplay').innerText = (currentAccount === 'demo' ? "Demo: $" : "Real: $") + Number(currentAccount === 'demo' ? demoBalance : realBalance).toLocaleString('en-US', {minimumFractionDigits: 2});
+                    alert(data.message);
+                    closeModal('authModal');
+                } else {
+                    alert("Registration failed: " + data.message);
+                }
+            } catch (err) {
+                console.error("Registration error:", err);
+                alert("Server error during registration connection.");
+            }
+        }
+    </script>
+</body>
+</html>
